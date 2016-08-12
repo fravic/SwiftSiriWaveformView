@@ -58,7 +58,7 @@ public class SwiftSiriWaveformView : UIView {
     * Color to use when drawing the waves
     * Default: white
     */
-    @IBInspectable public var waveColor:UIColor = UIColor.whiteColor()
+    @IBInspectable public var waveColor:UIColor = UIColor.white()
     
     
     /*
@@ -77,32 +77,32 @@ public class SwiftSiriWaveformView : UIView {
         super.init(coder: aDecoder)
     }
     
-    override public func drawRect(rect: CGRect) {
+    override public func draw(_ rect: CGRect) {
         // Convenience function to draw the wave
-        func drawWave(index:Int, maxAmplitude:CGFloat, normedAmplitude:CGFloat) {
+        func drawWave(_ index:Int, maxAmplitude:CGFloat, normedAmplitude:CGFloat) {
             let path = UIBezierPath()
             let mid = self.bounds.width/2.0
             
             path.lineWidth = index == 0 ? self.primaryLineWidth : self.secondaryLineWidth
             
-            for var x:CGFloat = 0; x < (self.bounds.width + self.density); x += self.density {
+            for x in stride(from:0.0, to:self.bounds.width + self.density, by: self.density) {
                 // Parabolic scaling
                 let scaling = -pow(1 / mid * (x - mid), 2) + 1
                 let y = scaling * maxAmplitude * normedAmplitude * sin(CGFloat(2 * M_PI) * self.frequency * (x / self.bounds.width)  + self.phase) + self.bounds.height/2.0
                 if x == 0 {
-                    path.moveToPoint(CGPoint(x:x, y:y))
+                    path.move(to: CGPoint(x:x, y:y))
                 } else {
-                    path.addLineToPoint(CGPoint(x:x, y:y))
+                    path.addLine(to: CGPoint(x:x, y:y))
                 }
             }
             path.stroke()
         }
         
         let context = UIGraphicsGetCurrentContext()
-        CGContextSetAllowsAntialiasing(context, true)
+        context?.setAllowsAntialiasing(true)
         
         self.backgroundColor?.set()
-        CGContextFillRect(context, rect)
+        context?.fill(rect)
         
         let halfHeight = self.bounds.height / 2.0
         let maxAmplitude = halfHeight - self.primaryLineWidth
@@ -111,7 +111,7 @@ public class SwiftSiriWaveformView : UIView {
             let progress = 1.0 - CGFloat(i) / CGFloat(self.numberOfWaves)
             let normedAmplitude = (1.5 * progress - 0.8) * self.amplitude
             let multiplier = min(1.0, (progress/3.0*2.0) + (1.0/3.0))
-            self.waveColor.colorWithAlphaComponent(multiplier * CGColorGetAlpha(self.waveColor.CGColor)).set()
+            self.waveColor.withAlphaComponent(multiplier * self.waveColor.cgColor.alpha).set()
             drawWave(i, maxAmplitude: maxAmplitude, normedAmplitude: normedAmplitude)
         }
         self.phase += self.phaseShift
